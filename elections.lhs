@@ -144,7 +144,7 @@ Convert file data to our data type
 Creates a new function that returns what percent of people voted to a party
 
 > percent :: Fractional a => (Line -> Int) -> (Line -> a)
-> percent f x = fromIntegral (f x) / fromIntegral (accepted x)
+> percent f x = fromIntegral (f x) / fromIntegral (accepted x) * 100
 
 -- The CSV uses windows-1255 encoding, we convert.
 
@@ -165,6 +165,6 @@ Main entrypoint
 >   contents0 <- getContents
 >   let contents1 = toUnicode contents0
 >   let results = getResults contents1 :: [Line]
->   forM (sortBy (compareWith $ percent otzma) results) $
+>   forM (filter ((>10000) . allowed) (sortBy (compareWith $ percent otzma) results)) $
 >     \l@Line{pos=p} -> putStrLn (p ++ " - " ++ (show $ percent otzma l))
 >   return ()
