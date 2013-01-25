@@ -4,6 +4,7 @@
 > import Data.Char
 > import System.IO
 > import Debug.Trace
+> import System.Exit
 
 a line from the CSV
 
@@ -157,14 +158,97 @@ Creates a new function that returns what percent of people voted to a party
 
 > compareWith f x y = compare (f x) (f y)
 
+where is:
+ג'ש
+כאוכב אבו אל היג'ה
+שגור
+
+
+> arabs = ["אום אל-פחם",
+>          "אל-עריאן",
+>          "באקה אל-גרביה", 
+>          "בסמ\"ה", 
+>          "ג'סר א-זרקא", 
+>          "כפר קרע", 
+>          "מייסר", 
+>          "מעלה עירון",
+>          "עין חוד",
+>          "ערערה",
+>          "אבו גוש",
+>          "עין נקובא",
+>          "עין ראפה",
+>          "ג'לג'וליה",
+>          "זמר",
+>          "טייבה",
+>          "טירה",
+>          "כפר ברא",
+>          "כפר קאסם",
+>          "אבו סנאן",
+>          "אכסאל",
+>          "אעבלין",
+>          "בועיינה-נוג'ידאת",
+>          "ג'דיידה-מכר",
+>          "דבוריה",
+>          "דחי",
+>          "דייר חנא",
+>          "זרזיר",
+>          "חמאם",
+>          "טורעאן",
+>          "טמרה (יזרעאל)",
+>          "טמרה",
+>          "יפיע",
+>          "כאבול",
+>          "כעביה-טבאש-חג'אג'",
+>          "כפר יאסיף",
+>          "כפר כנא",
+>          "כפר מנדא",
+>          "כפר מצר",
+>          "מוקייבלה",
+>          "מזרעה",
+>          "מגאר",
+>          "משהד",
+>          "נחף",
+>          "ניין",
+>          "נצרת",
+>          "סולם",
+>          "סח'נין",
+>          "צנדלה",
+>          "ע'ג'ר",
+>          "עיילבון",
+>          "עילוט",
+>          "עין מאהל",
+>          "עראבה",
+>          "ראמה",
+>          "רומאנה",
+>          "ריינה",
+>          "שייח' דנון",
+>          "שעב",
+>          "שפרעם"]
+
 Main entrypoint
        
+          
 > main :: IO ()     
 > main = do
 >   hSetEncoding stdin latin1 -- So we can read the windows-1255 without crash
 >   contents0 <- getContents
 >   let contents1 = toUnicode contents0
 >   let results = getResults contents1 :: [Line]
->   forM (filter ((>10000) . allowed) (sortBy (compareWith $ percent otzma) results)) $
->     \l@Line{pos=p} -> putStrLn (p ++ " - " ++ (show $ percent otzma l))
+>   let poses = map pos results
+>   unless (all (`elem` poses) arabs) $ do
+>     putStrLn "Missing arabs: " 
+>     mapM putStrLn $ flip filter arabs $ not . (`elem` poses)
+>     exitFailure
+>   forM [(shas, "ש\"ס"), 
+>         (kadima, "קדימה"),
+>         (otzma, "עוצמה"),
+>         (likud, "ליכוד")] $
+>     \(party,partyStr) -> do
+>       putStrLn "-------"
+>       putStrLn partyStr
+>       putStrLn "-------"
+>       forM (sortBy (compareWith $ percent party) $ 
+>               flip filter results $ (`elem` arabs) . pos) $
+>            \l@Line{pos=p} -> do 
+>              putStrLn $ p ++ ": " ++ (show $ percent party l) ++ "% - " ++ (show $ party l)
 >   return ()
